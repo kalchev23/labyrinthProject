@@ -1,64 +1,24 @@
 
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
-void SecondColumnWidth(int visitedSymbols[][80], char notVisitedSymbols[][80], int &i,int &j,bool &isLeftDependent, bool &isRightDependent, int &prevChoice)
+struct Cell
 {
-	if (visitedSymbols[i][j - 1] == 1 && visitedSymbols[i][j + 1] == 1)
-	{
-		int r = rand() % 2;
-		if (r == 0)
-		{
-			notVisitedSymbols[i][j - 1] = ' ';
-			isLeftDependent = true;
-		}
-		else
-		{
-			notVisitedSymbols[i][j + 1] = ' ';
-			isRightDependent = true;
-		}
-	}
-	else if (visitedSymbols[i][j - 1] == 2 && visitedSymbols[i][j + 1] == 1)
-	{
-		notVisitedSymbols[i][j + 1] = ' ';
-		isRightDependent = true;
-	}
-	else if (visitedSymbols[i][j - 1] == 1 && visitedSymbols[i][j + 1] == 2)
-	{
-		notVisitedSymbols[i][j - 1] = ' ';
-		isLeftDependent = true;
-	}
-
-	if (prevChoice == 1 && visitedSymbols[i][j - 1] == 0)
-	{
-		visitedSymbols[i][j - 1] = 1;
-		notVisitedSymbols[i][j - 1] = ' ';
-		isLeftDependent = true;
-	}
-	if (prevChoice == 2 && visitedSymbols[i][j + 1] == 0)
-	{
-		visitedSymbols[i][j + 1] = 1;
-		notVisitedSymbols[i][j + 1] = ' ';
-		isRightDependent = true;
-	}
-	if (isLeftDependent)
-	{
-		visitedSymbols[i][j - 1] = 1;
-		notVisitedSymbols[i][j - 1] = ' ';
-	}
-	if (isRightDependent)
-	{
-		visitedSymbols[i][j + 1] = 1;
-		notVisitedSymbols[i][j + 1] = ' ';
-	}
-}
+	int width;
+	int x, y;
+	int x1, y1;
+};
 
 int main()
 {
-    char notVisitedSymbols[20][80] = {};
-	int visitedSymbols[20][80] = {0};
-	
+	vector<Cell> curPos;
+	srand(time(0));
+
+	char notVisitedSymbols[20][80] = {};
+	int visitedSymbols[20][80] = {};
+
 	for (int i = 0; i < 20; i++)
 	{
 		for (int j = 0; j < 80; j++)
@@ -68,7 +28,7 @@ int main()
 				notVisitedSymbols[i][j] = '-';
 				visitedSymbols[i][j] = 2;
 			}
-			else if(j == 0 || j == 79)
+			else if (j == 0 || j == 79)
 			{
 				notVisitedSymbols[i][j] = '|';
 				visitedSymbols[i][j] = 2;
@@ -93,95 +53,122 @@ int main()
 		cout << endl;
 	}
 
-	int prevChoice = 0;
-	bool isLeftDependent = false;
-	bool isRightDependent = true;
-	int i = 1, j = 1;
-	srand(time(0));
 	int counter = 0;
+	int i = 1, j = 1;
+	int prevChoice = 0;
+	int index = 0;
+
+	Cell currentCell;
+	currentCell.width = 1;
+	currentCell.x = 1;
+	currentCell.y = 1;
+	curPos.push_back(currentCell);
 
 	while (i != 18 || j != 78)
 	{
 		counter++;
-		if (counter > 20)
+		if (counter > 100)
 			break;
+
 		//1-left,2-right,3-top,4-down
 		int choice = rand() % 4 + 1;
-		cout << "choice = " << choice << endl;
+
 		if (choice == 1)
 		{
-			isLeftDependent = false;
-			isRightDependent = false;
-			if (visitedSymbols[i][j - 1] == 0)
+			if (prevChoice == 3 || prevChoice == 4)
+				j--;
+			if (visitedSymbols[i][j + 2] == 0 && (visitedSymbols[i + 1][j + 1] == 0 || i == 18) && (visitedSymbols[i - 1][j + 1] == 0 || i == 1))
 			{
-				visitedSymbols[i - 1][j] = 2;
-				visitedSymbols[i + 1][j] = 2;
-				visitedSymbols[i][j - 1] = 1;
-				notVisitedSymbols[i][j - 1] = ' ';
+				index++;
+				curPos[index].width = 1;
+				curPos[index].x = j - 1;
+				curPos[index].y = i;
+				curPos.push_back(curPos[index]);
+
+				visitedSymbols[curPos[index].x][curPos[index].y] = 1;
+
 				j--;
 			}
 			else
+			{
 				continue;
+			}
 		}
 		if (choice == 2)
 		{
-			isLeftDependent = false;
-			isRightDependent = false;
-			if (visitedSymbols[i][j + 1] == 0)
+			if (prevChoice == 3 || prevChoice == 4)
+				j++;
+			if (visitedSymbols[i][j + 2] == 0 && (visitedSymbols[i + 1][j + 1] == 0 || i == 18) && (visitedSymbols[i - 1][j + 1] == 0 || i == 1))
 			{
-				visitedSymbols[i - 1][j] = 2;
-				visitedSymbols[i + 1][j] = 2;
-				visitedSymbols[i][j + 1] = 1;
-				notVisitedSymbols[i][j + 1] = ' ';
+				index++;
+				curPos[index].width = 1;
+				curPos[index].x = j + 1;
+				curPos[index].y = i;
+				curPos.push_back(curPos[index]);
+
+				visitedSymbols[curPos[index].x][curPos[index].y] = 1;
+
 				j++;
 			}
-			else
-				continue;
 		}
 		if (choice == 3)
 		{
-			if (visitedSymbols[i - 1][j] == 0)
+			if (prevChoice != 3 && visitedSymbols[i][j + 2] == 0 && visitedSymbols[i - 1][j + 1] == 0 && (visitedSymbols[i + 1][j + 1] == 0 || i == 18))
 			{
-				visitedSymbols[i - 1][j] = 1;
-				notVisitedSymbols[i - 1][j] = ' ';
-				
-				SecondColumnWidth(visitedSymbols, notVisitedSymbols, i, j, isLeftDependent, isRightDependent, prevChoice);
+				curPos[index].width = 2;
+				curPos[index].x1 = j + 1;
+				curPos[index].y1 = i;
+				curPos.push_back(curPos[index]);
+
+				visitedSymbols[curPos[index].x1][curPos[index].y1] = 1;
+			}
+			else if (visitedSymbols[i - 1][j - 1] == 0 && visitedSymbols[i - 2][j] == 0 && visitedSymbols[i - 1][j + 1] == 0)
+			{
+				index++;
+				curPos[index].width = 2;
+				curPos[index].x = j;
+				curPos[index].y = i - 1;
+				curPos[index].x1 = j + 1;
+				curPos[index].y1 = i - 1;
+				curPos.push_back(curPos[index]);
+
+				visitedSymbols[curPos[index].x][curPos[index].y] = 1;
+				visitedSymbols[curPos[index].x1][curPos[index].y1] = 1;
 
 				i--;
-
-				SecondColumnWidth(visitedSymbols, notVisitedSymbols, i, j, isLeftDependent, isRightDependent, prevChoice);
 			}
-			else
-				continue;
 		}
 		if (choice == 4)
 		{
-			if (visitedSymbols[i + 1][j] == 0)
+			if (prevChoice != 4 && visitedSymbols[i][j + 2] == 0 && visitedSymbols[i + 1][j + 1] == 0 && (visitedSymbols[i - 1][j + 1] == 0 || i == 1))
 			{
-				visitedSymbols[i + 1][j] = 1;
-				notVisitedSymbols[i + 1][j] = ' ';
+				curPos[index].width = 2;
+				curPos[index].x1 = j + 1;
+				curPos[index].y1 = i;
+				curPos.push_back(curPos[index]);
+			}
+			else if (visitedSymbols[i + 1][j - 1] == 0 && visitedSymbols[i + 2][j] == 0 && visitedSymbols[i + 1][j + 1] == 0)
+			{
+				index++;
+				curPos[index].width = 2;
+				curPos[index].x = j;
+				curPos[index].y = i + 1;
+				curPos[index].x1 = j + 1;
+				curPos[index].y1 = i + 1;
+				curPos.push_back(curPos[index]);
 
-				SecondColumnWidth(visitedSymbols, notVisitedSymbols, i, j, isLeftDependent, isRightDependent, prevChoice);
+				visitedSymbols[curPos[index].x][curPos[index].y] = 1;
+				visitedSymbols[curPos[index].x1][curPos[index].y1] = 1;
 
 				i++;
-
-				SecondColumnWidth(visitedSymbols, notVisitedSymbols, i, j, isLeftDependent, isRightDependent, prevChoice);
 			}
-			else
-				continue;
 		}
 		prevChoice = choice;
 	}
 
+	cout << endl;
+	cout << endl;
 
-	for (int i = 0; i < 20; i++)
-	{
-		for (int j = 0; j < 80; j++)
-		{
-			cout << notVisitedSymbols[i][j];
-		}
-		cout << endl;
-	}
 	for (int i = 0; i < 20; i++)
 	{
 		for (int j = 0; j < 80; j++)
@@ -190,5 +177,6 @@ int main()
 		}
 		cout << endl;
 	}
-    return 0;
+
+	return 0;
 }
