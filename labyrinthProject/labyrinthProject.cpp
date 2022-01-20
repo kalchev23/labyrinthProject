@@ -3,7 +3,7 @@
 
 using namespace std;
 
-void SecondColumnWidth(bool visitedSymbols[][80], char notVisitedSymbols[][80], int& i, int& j, bool& isLeftDependent, bool& isRightDependent, int& prevChoice)
+void SecondColumnWidth(int visitedSymbols[][80], char notVisitedSymbols[][80], int &i,int &j,bool &isLeftDependent, bool &isRightDependent, int &prevChoice)
 {
 	if (visitedSymbols[i][j - 1] == 1 && visitedSymbols[i][j + 1] == 1)
 	{
@@ -19,6 +19,17 @@ void SecondColumnWidth(bool visitedSymbols[][80], char notVisitedSymbols[][80], 
 			isRightDependent = true;
 		}
 	}
+	else if (visitedSymbols[i][j - 1] == 2 && visitedSymbols[i][j + 1] == 1)
+	{
+		notVisitedSymbols[i][j + 1] = ' ';
+		isRightDependent = true;
+	}
+	else if (visitedSymbols[i][j - 1] == 1 && visitedSymbols[i][j + 1] == 2)
+	{
+		notVisitedSymbols[i][j - 1] = ' ';
+		isLeftDependent = true;
+	}
+
 	if (prevChoice == 1 && visitedSymbols[i][j - 1] == 0)
 	{
 		visitedSymbols[i][j - 1] = 1;
@@ -45,9 +56,9 @@ void SecondColumnWidth(bool visitedSymbols[][80], char notVisitedSymbols[][80], 
 
 int main()
 {
-	char notVisitedSymbols[20][80] = {};
-	bool visitedSymbols[20][80] = { 0 };
-
+    char notVisitedSymbols[20][80] = {};
+	int visitedSymbols[20][80] = {0};
+	
 	for (int i = 0; i < 20; i++)
 	{
 		for (int j = 0; j < 80; j++)
@@ -55,12 +66,12 @@ int main()
 			if (i == 0 || i == 19)
 			{
 				notVisitedSymbols[i][j] = '-';
-				visitedSymbols[i][j] = 1;
+				visitedSymbols[i][j] = 2;
 			}
-			else if (j == 0 || j == 79)
+			else if(j == 0 || j == 79)
 			{
 				notVisitedSymbols[i][j] = '|';
-				visitedSymbols[i][j] = 1;
+				visitedSymbols[i][j] = 2;
 			}
 			else
 			{
@@ -68,6 +79,7 @@ int main()
 			}
 		}
 	}
+
 	notVisitedSymbols[1][1] = 'S';
 	notVisitedSymbols[18][78] = 'E';
 	visitedSymbols[1][1] = 1;
@@ -80,28 +92,30 @@ int main()
 		}
 		cout << endl;
 	}
+
 	int prevChoice = 0;
 	bool isLeftDependent = false;
 	bool isRightDependent = true;
 	int i = 1, j = 1;
 	srand(time(0));
 	int counter = 0;
+
 	while (i != 18 || j != 78)
 	{
 		counter++;
 		if (counter > 20)
 			break;
-
 		//1-left,2-right,3-top,4-down
 		int choice = rand() % 4 + 1;
 		cout << "choice = " << choice << endl;
-
 		if (choice == 1)
 		{
 			isLeftDependent = false;
 			isRightDependent = false;
 			if (visitedSymbols[i][j - 1] == 0)
 			{
+				visitedSymbols[i - 1][j] = 2;
+				visitedSymbols[i + 1][j] = 2;
 				visitedSymbols[i][j - 1] = 1;
 				notVisitedSymbols[i][j - 1] = ' ';
 				j--;
@@ -115,6 +129,8 @@ int main()
 			isRightDependent = false;
 			if (visitedSymbols[i][j + 1] == 0)
 			{
+				visitedSymbols[i - 1][j] = 2;
+				visitedSymbols[i + 1][j] = 2;
 				visitedSymbols[i][j + 1] = 1;
 				notVisitedSymbols[i][j + 1] = ' ';
 				j++;
@@ -128,7 +144,7 @@ int main()
 			{
 				visitedSymbols[i - 1][j] = 1;
 				notVisitedSymbols[i - 1][j] = ' ';
-
+				
 				SecondColumnWidth(visitedSymbols, notVisitedSymbols, i, j, isLeftDependent, isRightDependent, prevChoice);
 
 				i--;
@@ -157,6 +173,7 @@ int main()
 		prevChoice = choice;
 	}
 
+
 	for (int i = 0; i < 20; i++)
 	{
 		for (int j = 0; j < 80; j++)
@@ -165,6 +182,13 @@ int main()
 		}
 		cout << endl;
 	}
-
-	return 0;
+	for (int i = 0; i < 20; i++)
+	{
+		for (int j = 0; j < 80; j++)
+		{
+			cout << visitedSymbols[i][j];
+		}
+		cout << endl;
+	}
+    return 0;
 }
