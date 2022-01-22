@@ -4,6 +4,14 @@
 
 using namespace std;
 
+enum Directions {
+	Initial = 0,//0000
+	West = 1,//0001
+	East = 2,//0010
+	South = 4,//0100
+	North = 8// 1000
+};
+
 struct Cell
 {
 	Cell(int width, int x, int y, bool isDummyTurn = false, int x1 = -1, int y1 = -1) {
@@ -21,36 +29,20 @@ struct Cell
 	bool isDummyTurn = false;
 };
 
-struct Dir {
-
-	Dir() :Dir(false, false, false, false) {
-
+void printA(int visitedSymbols[][80]) {
+	for (int i = 0; i < 20; i++)
+	{
+		for (int j = 0; j < 80; j++)
+		{
+			cout << visitedSymbols[i][j];
+		}
+		cout << endl;
 	}
+	cout << endl;
+	cout << endl;
+}
 
-	Dir(bool east, bool west, bool north, bool south) {
-		East = east;
-		West = west;
-		North = north;
-		South = south;
-	}
-
-	bool East = false;
-	bool West = false;
-	bool North = false;
-	bool South = false;
-
-	bool Any() {
-		return East || West || South || North;
-	}
-};
-
-int main()
-{
-	srand(time(0));
-
-	char notVisitedSymbols[20][80] = {};
-	int visitedSymbols[20][80] = {};
-
+void initializeBoard(char notVisitedSymbols[][80], int visitedSymbols[][80]) {
 
 	for (int i = 0; i < 20; i++)
 	{
@@ -72,303 +64,327 @@ int main()
 			}
 		}
 	}
-
-	notVisitedSymbols[1][1] = 'S';
-	notVisitedSymbols[18][78] = 'E';
 	visitedSymbols[1][1] = 1;
+}
 
-	for (int i = 0; i < 20; i++)
+Directions getPossibleDirections(int visitedSymbols[][80], vector<Directions>& chosenDirections, int i, int j) {
+	Directions result = Directions::Initial;
+	//West dir possible
+	if (j > 1 && (visitedSymbols[i][j - 2] == 0 || j == 2) && (visitedSymbols[i + 1][j - 1] == 0 || i == 18) && (visitedSymbols[i - 1][j - 1] == 0 || i == 1))
 	{
-		for (int j = 0; j < 80; j++)
-		{
-			cout << visitedSymbols[i][j];
-		}
-		cout << endl;
+		result = (Directions)(result | Directions::West);
 	}
 
+	//East dir possible
+	if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) == 3 || *(chosenDirections.end() - 1) == 4))
+	{
+		j++;
+	}
+	//change 2nd condition
+	if (j < 78 && (visitedSymbols[i][j + 2] == 0 || j == 77) && (visitedSymbols[i + 1][j + 1] == 0 || i == 18) && (visitedSymbols[i - 1][j + 1] == 0 || i == 1))
+	{
+		result = (Directions)(result | Directions::East);
+	}
+	if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) == 3 || *(chosenDirections.end() - 1) == 4))
+	{
+		j--;
+	}
+
+	//North dir possible
+	if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) == 1))
+	{
+		j--;
+	}
+	if (i > 1 && (visitedSymbols[i - 2][j] == 0 || i == 2) && (visitedSymbols[i - 1][j - 1] == 0 || j == 1) && (visitedSymbols[i - 1][j + 1] == 0 || j == 78))
+	{
+		if ((visitedSymbols[i - 2][j + 1] == 0 || i == 2) && (visitedSymbols[i - 1][j + 2] == 0 || j == 77))
+		{
+			if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) == 1))
+			{
+				if ((visitedSymbols[i][j - 1] == 0 || j == 1) && (visitedSymbols[i + 1][j] == 0 || i == 18))
+				{
+					result = (Directions)(result | Directions::North);
+				}
+			}
+			else if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) == 2))
+			{
+				if ((visitedSymbols[i][j + 1] == 0 || j == 77) && (visitedSymbols[i + 1][j] == 0 || i == 18))
+				{
+					result = (Directions)(result | Directions::North);
+				}
+			}
+			else if (chosenDirections.size() > 0)
+			{
+				result = (Directions)(result | Directions::North);
+			}
+		}
+
+	}
+
+	// South
+	if (i < 18 && (visitedSymbols[i + 2][j] == 0 || i == 17) && (visitedSymbols[i + 1][j - 1] == 0 || j == 1) && (visitedSymbols[i + 1][j + 1] == 0 || j == 78))
+	{
+		if ((visitedSymbols[i + 2][j + 1] == 0 || i == 17) && (visitedSymbols[i + 1][j + 2] == 0 || j == 77))
+		{
+			if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) == 1))
+			{
+				if ((visitedSymbols[i][j - 1] == 0 || j == 1) && (visitedSymbols[i - 1][j] == 0 || i == 1))
+				{
+					result = (Directions)(result | Directions::South);
+				}
+			}
+			else if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) == 2))
+			{
+				if ((visitedSymbols[i][j + 1] == 0 || j == 77) && (visitedSymbols[i - 1][j] == 0 || i == 1))
+				{
+					result = (Directions)(result | Directions::South);
+				}
+			}
+			else if (chosenDirections.size() > 0)
+			{
+				result = (Directions)(result | Directions::South);
+			}
+
+		}
+
+	}
+	if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) == 1))
+	{
+		j++;
+	}
+
+	return result;
+}
+
+void makeMainPath(int visitedSymbols[][80]) 
+{
 	int turns = 0;
-	int counter = 0;
 	int i = 1, j = 1;
-	int index = 0;
+	int currentPositionIndex = 0;
 	bool isBackTracking = false;
 	const int maxWestTurns = 1;
 	const int maxNorthTurns = 1;
 	int northTurns = 0;
 	int westTurns = 0;
 
-	vector<Cell> curPos = { Cell(1,1,1) };
-	vector<Dir> dirs = {};
-	vector<int> steps = { -1 };
+	vector<Cell> currentPosition = { Cell(1,1,1) };
+	vector<Directions> possibleDirections = {};
+	vector<Directions> chosenDirections = { Directions::Initial };
 
 	while (i != 18 || j != 78)
 	{
-		counter++;
-
+		//printA(visitedSymbols);
 		//1-left,2-right,3-top,4-down
+		Directions currentPossibleDirections;
 
-		vector<int> neighbours;
-
-		if (isBackTracking && dirs.size() > 0) {
-			Dir last = *(dirs.end() - 1);
-			if (last.West) {
-				neighbours.push_back(1);
-			}
-			if (last.East) {
-				neighbours.push_back(2);
-			}
-			if (last.North) {
-				neighbours.push_back(3);
-			}
-			if (last.South) {
-				neighbours.push_back(4);
-			}
+		if (isBackTracking && possibleDirections.size() > 1) {
+			currentPossibleDirections = *(possibleDirections.end() - 1);
 		}
 		else {
-			dirs.push_back(Dir());
-			//West dir possible
-			if (j > 1 && visitedSymbols[i][j - 2] == 0 && (visitedSymbols[i + 1][j - 1] == 0 || i == 18) && (visitedSymbols[i - 1][j - 1] == 0 || i == 1))
-			{
-				neighbours.push_back(1);
-				(*(dirs.end() - 1)).West = true;
-			}
+			currentPossibleDirections = getPossibleDirections(visitedSymbols, chosenDirections, i, j);
+			possibleDirections.push_back(currentPossibleDirections);
+		}
+		//cout << ((int)(currentPossibleDirections&Directions::North)>0 ?"North":"") << endl;
 
-			//East dir possible
-			if (steps.size() > 0 && (*(steps.end() - 1) == 3 || *(steps.end() - 1) == 4))
-			{
-				j++;
-			}
-			if (j < 78 && visitedSymbols[i][j + 2] == 0 && (visitedSymbols[i + 1][j + 1] == 0 || i == 18) && (visitedSymbols[i - 1][j + 1] == 0 || i == 1))
-			{
-				neighbours.push_back(2);
-				(*(dirs.end() - 1)).East = true;
-			}
-			if (steps.size() > 0 && (*(steps.end() - 1) == 3 || *(steps.end() - 1) == 4))
-			{
-				j--;
-			}
-
-			//North dir possible
-			if (steps.size() > 0 && (*(steps.end() - 1) == 1))
-			{
-				j--;
-			}
-			if (i > 1 && visitedSymbols[i - 2][j] == 0 && (visitedSymbols[i - 1][j - 1] == 0 || j == 1) && (visitedSymbols[i - 1][j + 1] == 0 || j == 78))
-			{
-				// <-
-				if (steps.size() > 1 && *(steps.end() - 1) == 1 && *(steps.end() - 2) == 1)
-				{
-					if (visitedSymbols[i - 2][j + 1] == 0 && visitedSymbols[i - 1][j + 1] == 0 && (visitedSymbols[i - 1][j + 2] == 0 || i == 18)) {
-						neighbours.push_back(3);
-						(*(dirs.end() - 1)).North = true;
-					}
-				}
-				// ->    ^
-				else
-				{
-					if (visitedSymbols[i - 2][j + 1] == 0 && visitedSymbols[i - 1][j + 1] == 0 && (j == 77 || visitedSymbols[i - 1][j + 2] == 0))
-					{
-						neighbours.push_back(3);
-						(*(dirs.end() - 1)).North = true;
-					}
-				}
-			}
-			if (steps.size() > 0 && (*(steps.end() - 1) == 1))
-			{
-				j++;
-			}
-
-			//South dir possible
-			if (steps.size() > 0 && (*(steps.end() - 1) == 2))
-			{
-				j--;
-			}
-			if (i < 18 && visitedSymbols[i + 2][j] == 0 && (visitedSymbols[i + 1][j - 1] == 0 || j == 1) && (visitedSymbols[i + 1][j + 1] == 0 || j == 78))
-			{
-				if (steps.size() > 1 && *(steps.end() - 1) == 2 && *(steps.end() - 2) == 2)
-				{
-					if (visitedSymbols[i + 1][j + 2] == 0 && visitedSymbols[i + 2][j + 1] == 0 && (visitedSymbols[i + 1][j + 1] == 0 || i == 1)) {
-						neighbours.push_back(4);
-						(*(dirs.end() - 1)).South = true;
-					}
-				}
-				else
-				{
-					if (visitedSymbols[i + 2][j + 1] == 0 && visitedSymbols[i + 1][j + 1] == 0 && (visitedSymbols[i + 1][j + 2] == 0)) {
-						neighbours.push_back(4);
-						(*(dirs.end() - 1)).South = true;
-					}
-				}
-			}
-			if (steps.size() > 0 && (*(steps.end() - 1) == 2))
-			{
-				j++;
-			}
+		if (westTurns >= maxWestTurns) {
+			currentPossibleDirections = (Directions)(currentPossibleDirections & ~(1));
+		}
+		if (northTurns >= maxNorthTurns) {
+			currentPossibleDirections = (Directions)(currentPossibleDirections & ~(1 << 3));
 		}
 
-		vector<int> possibleDir;
-		for (int m = 0; m < neighbours.size(); m++)
+		if (currentPossibleDirections != Directions::Initial)
 		{
-			if (neighbours[m] == 1 && westTurns < maxWestTurns) {
-				possibleDir.push_back(1);
-			}
-			else if (neighbours[m] == 3 && northTurns < maxNorthTurns) {
-				possibleDir.push_back(3);
-			}
-			else if (neighbours[m] == 2 || neighbours[m] == 4) {
-				possibleDir.push_back(neighbours[m]);
-			}
-		}
+			Directions chosenDir = Directions::Initial;
+			int ind;
+			do {
+				ind = rand() % 4 + 1;// 1-4
+				if (ind == 3)
+				{
+					ind = 8;
+				}
+				chosenDir = (Directions)(currentPossibleDirections & ind);
 
-		if (!possibleDir.empty())
-		{
-			int a = neighbours.size();
-			int ind = rand() % a;
-			int nextCellDir = neighbours[ind];
+			} while (chosenDir == Directions::Initial);
 
-			//cout << nextCellDir << endl;
-			switch (nextCellDir)
-			{
-			case 1: (*(dirs.end() - 1)).West = false; westTurns++; break;
-			case 2: (*(dirs.end() - 1)).East = false; break;
-			case 3: (*(dirs.end() - 1)).North = false; northTurns++; break;
-			case 4: (*(dirs.end() - 1)).South = false; break;
+			//cout << ((chosenDir == Directions::North) ? "North" : "") << endl;
+			
+		// TODO: fix
+			int invertOfParts = 0b1111 - chosenDir;
+			(*(possibleDirections.end() - 1)) = Directions(((*(possibleDirections.end() - 1)) & ~invertOfParts));
+			if (chosenDir == Directions::North) {
+				cout << "Not north: " << ~chosenDir << endl;
+				cout << *(possibleDirections.end() - 1) << endl;
+				//cout << "NN: " << ((*(possibleDirections.end() - 1)) && Directions::North) << endl;
+			}
+
+			if (chosenDir == Directions::North) {
+				northTurns++;
+			}
+			else if (chosenDir == Directions::West) {
+				westTurns++;
 			}
 
 			isBackTracking = false;
-			if (steps.size() > 0 && (*(steps.end() - 1) != nextCellDir))
-			{
-				turns++;
-			}
+			/*	if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) != nextCellDir))
+				{
+					turns++;
+				}*/
 
-			switch (nextCellDir)
+			switch (chosenDir)
 			{
-			case 1:
-				index++;
-				curPos.push_back(Cell(1, j - 1, i));
-				visitedSymbols[curPos[index].y][curPos[index].x] = 1;
+			case Directions::West:
+				currentPositionIndex++;
+				currentPosition.push_back(Cell(1, j - 1, i));
+				visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 1;
 				j--;
 				break;
 
-			case 2:
-				if (steps.size() > 0 && (*(steps.end() - 1) == 3 || *(steps.end() - 1) == 4)) {
+			case Directions::East:
+				if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) == 3 || *(chosenDirections.end() - 1) == 4))
+				{
 					j++;
 				}
-				index++;
-				curPos.push_back(Cell(1, j + 1, i));
-				visitedSymbols[curPos[index].y][curPos[index].x] = 1;
+				currentPositionIndex++;
+				currentPosition.push_back(Cell(1, j + 1, i));
+				visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 1;
 				j++;
 				break;
 
-			case 3:
-				visitedSymbols[curPos[index].y][curPos[index].x] = 1;
-				if (steps.size() > 0 && *(steps.end() - 1) == 1)
+			case Directions::North:
+				visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 1;
+				if (chosenDirections.size() > 0 && *(chosenDirections.end() - 1) == 1)
 				{
-					curPos.push_back(Cell(1, j - 1, i, true));
+					currentPosition.push_back(Cell(1, j - 1, i, true));
 					j--;
+					currentPositionIndex++;
+					visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 1;
 				}
-				else {
-					curPos.push_back(Cell(1, j + 1, i, true));
+				else if (chosenDirections.size() > 0 && *(chosenDirections.end() - 1) == 2)
+				{
+					currentPosition.push_back(Cell(1, j + 1, i, true));
+					currentPositionIndex++;
+					visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 1;
 				}
 
-				index++;
-				visitedSymbols[curPos[index].y][curPos[index].x] = 1;
-
-				index++;
-				curPos.push_back(Cell(2, j, i - 1, false, j + 1, i - 1));
-				visitedSymbols[curPos[index].y][curPos[index].x] = 1;
-				visitedSymbols[curPos[index].y1][curPos[index].x1] = 1;
+				currentPositionIndex++;
+				currentPosition.push_back(Cell(2, j, i - 1, false, j + 1, i - 1));
+				visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 1;
+				visitedSymbols[currentPosition[currentPositionIndex].y1][currentPosition[currentPositionIndex].x1] = 1;
 				i--;
 				break;
 
-			case 4:
-				visitedSymbols[curPos[index].y][curPos[index].x] = 1;
-				if (steps.size() > 0 && *(steps.end() - 1) == 2)
+			case Directions::South:
+				visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 1;
+				if (chosenDirections.size() > 0 && *(chosenDirections.end() - 1) == 1)
 				{
-					curPos.push_back(Cell(1, j - 1, i, true));
+					currentPosition.push_back(Cell(1, j - 1, i, true));
 					j--;
+					currentPositionIndex++;
+					visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 1;
 				}
-				else {
-					curPos.push_back(Cell(1, j + 1, i, true));
+				else if (chosenDirections.size() > 0 && (*(chosenDirections.end() - 1) == 2 || *(chosenDirections.end() - 1) == -1))
+				{
+					currentPosition.push_back(Cell(1, j + 1, i, true));
+					currentPositionIndex++;
+					visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 1;
 				}
-				index++;
-				visitedSymbols[curPos[index].y][curPos[index].x] = 1;
 
-				index++;
-				curPos.push_back(Cell(2, j, i + 1, false, j + 1, i + 1));
+				currentPositionIndex++;
+				currentPosition.push_back(Cell(2, j, i + 1, false, j + 1, i + 1));
 
-				visitedSymbols[curPos[index].y][curPos[index].x] = 1;
-				visitedSymbols[curPos[index].y1][curPos[index].x1] = 1;
+				visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 1;
+				visitedSymbols[currentPosition[currentPositionIndex].y1][currentPosition[currentPositionIndex].x1] = 1;
 				i++;
 				break;
 			}
 
-			steps.push_back(nextCellDir);
+			chosenDirections.push_back(chosenDir);
 		}
 		else
 		{
 			isBackTracking = true;
 			//Backtracking
 			do {
-				visitedSymbols[curPos[index].y][curPos[index].x] = 0;
-				if (curPos[index].width == 2)
+
+				visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 0;
+				if (currentPosition[currentPositionIndex].width == 2)
 				{
-					visitedSymbols[curPos[index].y1][curPos[index].x1] = 0;
+					visitedSymbols[currentPosition[currentPositionIndex].y1][currentPosition[currentPositionIndex].x1] = 0;
 				}
-				curPos.pop_back();
-				index--;
+				currentPosition.pop_back();
+				currentPositionIndex--;
 
-				if (index > -1 && curPos[index].isDummyTurn) {
-					visitedSymbols[curPos[index].y][curPos[index].x] = 0;
-					curPos.pop_back();
-					index--;
+				if (currentPositionIndex > -1 && currentPosition[currentPositionIndex].isDummyTurn) {
+					visitedSymbols[currentPosition[currentPositionIndex].y][currentPosition[currentPositionIndex].x] = 0;
+					currentPosition.pop_back();
+					currentPositionIndex--;
 				}
 
-				if (index > -1) {
-					i = curPos[index].y;
-					j = curPos[index].x;
+				if (currentPositionIndex > -1) {
+					i = currentPosition[currentPositionIndex].y;
+					j = currentPosition[currentPositionIndex].x;
 				}
 				else {
 					i = j = 1;
 				}
 
-				if (*(steps.end() - 1) == 1) {
+				if (*(chosenDirections.end() - 1) == Directions::West) {
 					westTurns--;
 				}
-				else if (*(steps.end() - 1) == 3) {
+				else if (*(chosenDirections.end() - 1) == Directions::North) {
 					northTurns--;
 				}
 
-				steps.pop_back();
-				dirs.pop_back();
-			} while (!(*(dirs.end() - 1)).Any());
+				//cout << "Step : " << *(chosenDirections.end() - 1) << "  i : " << i << "  j : " << j << endl;
+
+				chosenDirections.pop_back();
+				possibleDirections.pop_back();
+			} while (possibleDirections.size() > 1 && (*(possibleDirections.end() - 1)) == Directions::Initial);
 		}
 
-		if (counter % 200000 == 0) {
-			cout << endl;
-			cout << endl;
-
-			for (int i = 0; i < 20; i++)
-			{
-				for (int j = 0; j < 80; j++)
-				{
-					cout << visitedSymbols[i][j];
-				}
-				cout << endl;
-			}
-		}
+		/*if (counter > 100000)
+			break;*/
 	}
+}
 
-	cout << endl;
-	cout << endl;
-
+void printMaze(char notVisitedSymbols[][80], int visitedSymbols[][80]) {
 	for (int i = 0; i < 20; i++)
 	{
 		for (int j = 0; j < 80; j++)
 		{
-			cout << visitedSymbols[i][j];
+			if (i == 1 && j == 1)
+			{
+				notVisitedSymbols[1][1] = 'S';
+			}
+			else if (i == 18 && j == 78)
+			{
+				notVisitedSymbols[18][78] = 'E';
+			}
+			else if (visitedSymbols[i][j] == 1)
+			{
+				notVisitedSymbols[i][j] = ' ';
+			}
+			cout << notVisitedSymbols[i][j];
 		}
 		cout << endl;
 	}
+}
+
+int main()
+{
+	srand(time(0));
+
+	char notVisitedSymbols[20][80] = {};
+	int visitedSymbols[20][80] = {};
+	initializeBoard(notVisitedSymbols, visitedSymbols);
+
+	/**/
+	makeMainPath(visitedSymbols);
+
+	//makeOtherPaths(visitedSymbols);
+
+	printMaze(notVisitedSymbols, visitedSymbols);
 
 	return 0;
 }
